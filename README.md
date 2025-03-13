@@ -18,11 +18,11 @@
 
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/loqumi/friendly-disco.git
+git clone https://github.com/loqumi/super-duper-waffle.git
 ```
 2. Перейдите в директорию проекта:
 ```bash
-cd friendly-disco
+cd super-duper-waffle
 ```
 
 3. Установка зависимостей и запуск:
