@@ -87,55 +87,59 @@ const PortfolioTable = () => {
     }
 
     return (
-        <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
-            <Table aria-label="Portfolio table" size="medium">
-                <TableHead>
-                    <TableRow sx={{ bgcolor: 'background.default' }}>
-                        <TableCell>Актив</TableCell>
-                        <TableCell align="right">Количество</TableCell>
-                        <TableCell align="right">Цена</TableCell>
-                        <TableCell align="right">Общая цена</TableCell>
-                        <TableCell align="right">Изменение 24ч</TableCell>
-                        <TableCell align="right">% портфеля</TableCell>
-                        <TableCell align="right"></TableCell>
-                    </TableRow>
-                </TableHead>
+        <>
+            {portfolio.length > 0 ? (
+                <TableContainer component={Paper} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                    <Table aria-label="Portfolio table" size="medium">
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: 'background.default' }}>
+                                <TableCell>Актив</TableCell>
+                                <TableCell align="right">Количество</TableCell>
+                                <TableCell align="right">Цена</TableCell>
+                                <TableCell align="right">Общая цена</TableCell>
+                                <TableCell align="right">Изменение 24ч</TableCell>
+                                <TableCell align="right">% портфеля</TableCell>
+                                <TableCell align="right"></TableCell>
+                            </TableRow>
+                        </TableHead>
 
-                <TableBody>
-                    {portfolio.map((asset) => (
-                        <motion.tr
-                            key={asset.symbol}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                        >
-                            <TableCell component="th" scope="row">
-                                <Typography fontWeight="bold">{asset.symbol}</Typography>
-                            </TableCell>
-                            <TableCell align="right">{asset.quantity.toFixed(4)}</TableCell>
-                            <TableCell align="right">${asset.currentPrice.toFixed(2)}</TableCell>
-                            <TableCell align="right">${asset.value.toFixed(2)}</TableCell>
-                            <TableCell align="right">
-                                <Typography
-                                    color={asset.change24h >= 0 ? 'success.main' : 'error.main'}
+                        <TableBody>
+                            {portfolio.map((asset) => (
+                                <motion.tr
+                                    key={asset.symbol}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                 >
-                                    {asset.change24h.toFixed(2)}%
-                                </Typography>
-                            </TableCell>
-                            <TableCell align="right">{asset.allocation.toFixed(3)}%</TableCell>
-                            <TableCell align="right">
-                                <IconButton
-                                    onClick={() => dispatch(removeAsset(asset.symbol))}
-                                    aria-label="Удалить"
-                                >
-                                    <DeleteIcon fontSize="small" />
-                                </IconButton>
-                            </TableCell>
-                        </motion.tr>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                                    <TableCell component="th" scope="row">
+                                        <Typography fontWeight="bold">{asset.symbol}</Typography>
+                                    </TableCell>
+                                    <TableCell align="right">{asset.quantity.toFixed(4)}</TableCell>
+                                    <TableCell align="right">${asset.currentPrice.toFixed(2)}</TableCell>
+                                    <TableCell align="right">${asset.value.toFixed(2)}</TableCell>
+                                    <TableCell align="right">
+                                        <Typography
+                                            color={asset.change24h >= 0 ? 'success.main' : 'error.main'}
+                                        >
+                                            {asset.change24h.toFixed(2)}%
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell align="right">{asset.allocation.toFixed(3)}%</TableCell>
+                                    <TableCell align="right">
+                                        <IconButton
+                                            onClick={() => dispatch(removeAsset(asset.symbol))}
+                                            aria-label="Удалить"
+                                        >
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </TableCell>
+                                </motion.tr>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            ) : <Typography align="center">Нет активов в вашем портфеле. Добавьте что-нибудь, чтобы начать!</Typography>}
+        </>
     )
 }
 
