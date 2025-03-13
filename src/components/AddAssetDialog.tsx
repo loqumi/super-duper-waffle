@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from '../app/hooks'
 import { addAsset } from '../features/assetsSlice'
 import {
@@ -6,13 +6,14 @@ import {
     DialogTitle,
     DialogContent,
     TextField,
-    List,
     ListItemButton,
     ListItemText,
     DialogActions,
     Button,
     Typography
 } from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import { FixedSizeList } from 'react-window'
 
 const AddAssetDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
     const dispatch = useAppDispatch()
@@ -21,33 +22,43 @@ const AddAssetDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
     const [selectedTicker, setSelectedTicker] = useState<string | null>(null)
     const [quantity, setQuantity] = useState('')
 
-    const handleClose = () => {
-        if (selectedTicker) {
-            setSelectedTicker(null)
-            setQuantity('')
-        } else {
-            onClose()
-        }
-    }
+    const filteredTickers = useMemo(() =>
+            allTickers.filter(t => t.symbol.toLowerCase().includes(searchTerm.toLowerCase())),
+        [allTickers, searchTerm]
+    )
 
     const handleAddAsset = () => {
         if (!selectedTicker || !quantity) return
 
-        // Правильный вызов action с двумя аргументами
         dispatch(addAsset(selectedTicker, parseFloat(quantity)))
         onClose()
         setSelectedTicker(null)
         setQuantity('')
     }
 
+    const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+        const ticker = filteredTickers[index]
+        return (
+            <ListItemButton
+                style={style}
+                key={ticker.symbol}
+                onClick={() => setSelectedTicker(ticker.symbol)}
+            >
+                <ListItemText
+                    primary={ticker.symbol}
+                    secondary={`$${ticker.lastPrice.toFixed(2)}`}
+                />
+                <Typography
+                    color={ticker.priceChangePercent >= 0 ? 'success.main' : 'error.main'}
+                >
+                    {ticker.priceChangePercent.toFixed(2)}%
+                </Typography>
+            </ListItemButton>
+        )
+    }
+
     return (
-        <Dialog
-            open={open}
-            onClose={handleClose}
-            maxWidth="sm"
-            fullWidth
-            slotProps={{ backdrop: { transitionDuration: 300 } }} // Исправление deprecated атрибута
-        >
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>
                 {selectedTicker ? `Добавить ${selectedTicker}` : 'Выберите актив'}
             </DialogTitle>
@@ -61,32 +72,21 @@ const AddAssetDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
                             placeholder="Поиск валют"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
+                            InputProps={{
+                                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.disabled' }} />
+                            }}
                             sx={{ mb: 2 }}
                         />
 
-                        <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-                            {allTickers
-                                .filter(ticker =>
-                                    ticker.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-                                )
-                                .map((ticker) => (
-                                    <ListItemButton
-                                        key={ticker.symbol}
-                                        onClick={() => setSelectedTicker(ticker.symbol)}
-                                        aria-label={`Выбрать ${ticker.symbol}`}
-                                    >
-                                        <ListItemText
-                                            primary={ticker.symbol}
-                                            secondary={`$${ticker.lastPrice.toFixed(2)}`}
-                                        />
-                                        <Typography
-                                            color={ticker.priceChangePercent >= 0 ? 'success.main' : 'error.main'}
-                                        >
-                                            {ticker.priceChangePercent.toFixed(2)}%
-                                        </Typography>
-                                    </ListItemButton>
-                                ))}
-                        </List>
+                        <FixedSizeList
+                            height={400}
+                            width="100%"
+                            itemSize={60}
+                            itemCount={filteredTickers.length}
+                            overscanCount={10}
+                        >
+                            {Row}
+                        </FixedSizeList>
                     </>
                 ) : (
                     <>
@@ -99,6 +99,7 @@ const AddAssetDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
                             type="number"
                             value={quantity}
                             onChange={(e) => setQuantity(e.target.value)}
+                            InputProps={{ inputProps: { min: 0, step: 1 } }}
                             sx={{ mb: 3 }}
                         />
                     </>
@@ -106,7 +107,7 @@ const AddAssetDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
             </DialogContent>
 
             <DialogActions>
-                <Button onClick={handleClose} aria-label={selectedTicker ? 'Назад' : 'Отмена'}>
+                <Button onClick={() => selectedTicker ? setSelectedTicker(null) : onClose()}>
                     {selectedTicker ? 'Назад' : 'Отмена'}
                 </Button>
                 {selectedTicker && (
@@ -114,7 +115,6 @@ const AddAssetDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
                         variant="contained"
                         onClick={handleAddAsset}
                         disabled={!quantity || parseFloat(quantity) <= 0}
-                        aria-label="Добавить актив"
                     >
                         Добавить
                     </Button>

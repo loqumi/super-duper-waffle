@@ -37,10 +37,9 @@ const marketDataSlice = createSlice({
     name: 'marketData',
     initialState,
     reducers: {
-        updatePrice: (state, action: PayloadAction<Record<string, { price: number; change24h: number }>>) => {
-            Object.entries(action.payload).forEach(([symbol, values]) => {
-                state.prices[symbol] = values
-            })
+        updatePrice: (state, action: PayloadAction<{symbol: string; price: number; change24h: number}>) => {
+            const { symbol, price, change24h } = action.payload
+            state.prices[symbol] = { price, change24h }
         }
     },
     extraReducers: (builder) => {
